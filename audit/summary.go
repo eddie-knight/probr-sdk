@@ -43,11 +43,6 @@ func NewSummaryState(packName string, defaultLogger ...bool) (state SummaryState
 	return
 }
 
-// PrintSummary will print the current object state, formatted to JSON
-func (s *SummaryState) PrintSummary() {
-	log.Printf("Summary: %s", s.summary()) // Summary output should not be handled by log levels
-}
-
 // WriteSummary will write the summary to the audit directory
 func (s *SummaryState) WriteSummary() {
 	path := filepath.Join(config.GlobalConfig.WriteDirectory, "summary.json")
