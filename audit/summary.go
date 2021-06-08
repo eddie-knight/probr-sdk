@@ -56,7 +56,7 @@ func (s *SummaryState) WriteSummary() {
 	}
 }
 
-// summary will marshal obj as json, unmarshal into limited obj, then marshal again & write/print
+// summary will marshal obj as json, unmarshal into limited obj, then marshal again for writing/printing
 func (s *SummaryState) summary() []byte {
 	var limitedObj limitedSummaryState
 	fullJSON := utils.JSON(s)

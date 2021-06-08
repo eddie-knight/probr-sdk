@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -50,15 +49,15 @@ func (ctx *GlobalOpts) LogConfigState() {
 }
 
 // SetTmpDir sets the location that temporary files will be written to
-func (ctx *GlobalOpts) SetTmpDir(path string) {
-	ctx.TmpDir = path
-	err := os.MkdirAll(path, 0755)
-	if err == nil {
-		log.Printf("[DEBUG] Created temporary directory: %v", err)
-	} else {
-		log.Printf("[ERROR] Failed to create temporary directory: %v", err)
-	}
-}
+// func (ctx *GlobalOpts) SetTmpDir(path string) {
+// 	ctx.TmpDir = path
+// 	err := os.MkdirAll(path, 0755)
+// 	if err == nil {
+// 		log.Printf("[DEBUG] Created temporary directory: %v", err)
+// 	} else {
+// 		log.Printf("[ERROR] Failed to create temporary directory: %v", err)
+// 	}
+// }
 
 // setEnvOrDefaults will set value from os.Getenv and default to the specified value
 func (ctx *GlobalOpts) setEnvAndDefaults() {
@@ -112,15 +111,15 @@ func prependTags(tags []string, prefix string) []string {
 }
 
 // SetTmpDir sets the location that temporary files will be written to
-func SetTmpDir(path string) {
-	GlobalConfig.TmpDir = path
-	err := os.MkdirAll(path, 0755)
-	if err == nil {
-		log.Printf("[DEBUG] Created temporary directory: %v", err)
-	} else {
-		log.Printf("[ERROR] Failed to create temporary directory: %v", err)
-	}
-}
+// func SetTmpDir(path string) {
+// 	GlobalConfig.TmpDir = path
+// 	err := os.MkdirAll(path, 0755)
+// 	if err == nil {
+// 		log.Printf("[DEBUG] Created temporary directory: %v", err)
+// 	} else {
+// 		log.Printf("[ERROR] Failed to create temporary directory: %v", err)
+// 	}
+// }
 
 // CleanupTmp is used to dispose of any temp resources used during execution
 func (ctx *GlobalOpts) CleanupTmp() {
@@ -132,25 +131,31 @@ func (ctx *GlobalOpts) CleanupTmp() {
 
 // OutputDir parses a filepath based on GlobalOpts.InstallDir and the datetime this was initialized
 func (ctx *GlobalOpts) OutputDir() string {
-	year, month, day := ctx.StartTime.Date()
-	hour, min, sec := ctx.StartTime.Clock()
-	yearMonthDay := fmt.Sprintf("%04d%v%02d", year, month, day)
-	timestamp := fmt.Sprintf("%02d%02d%02d", hour, min, sec)
 	execName := utils.GetExecutableName()
-
-	base := filepath.Join(ctx.InstallDir, "output", yearMonthDay, timestamp, execName)
-	prepareOutputDirectories(base)
-	return base
+	if execName == "probr" {
+		return filepath.Join(ctx.InstallDir, "output")
+	}
+	return filepath.Join(ctx.InstallDir, "output", execName)
 }
 
-func prepareOutputDirectories(base string) {
-	dirs := []string{"audit", "cucumber"}
-	for _, dir := range dirs {
-		err := os.MkdirAll(filepath.Join(base, dir), 0755)
-		if err != nil {
-			log.Print(utils.ReformatError(err.Error()))
-		} else {
-			log.Printf("[DEBUG] Directory is ready for use: %s", dir)
-		}
+// PrepareOutputDirectory will ensure readiness of output dir and specified subdirectories
+func (ctx *GlobalOpts) PrepareOutputDirectory(subdirectories ...string) {
+	base := ctx.OutputDir()
+	log.Printf("[DEBUG] Ensuring output directory is ready for use: %s", base)
+	ensureDirReadiness(base)
+	// If subdirectories are provided, validate each
+	for _, dir := range subdirectories {
+		dirName := filepath.Join(base, dir)
+		ensureDirReadiness(dirName)
+	}
+}
+
+// Create directory if possible, otherwise log error to console
+func ensureDirReadiness(directory string) {
+	err := os.MkdirAll(directory, 0755)
+	if err != nil {
+		log.Print(utils.ReformatError(err.Error()))
+	} else {
+		log.Printf("[DEBUG] Directory is ready for use: %s", directory)
 	}
 }
